@@ -1,0 +1,358 @@
+<?php
+
+/**
+ * @file
+ * Responsive Menu 7.x-3.7, modified October 2026.
+ * Adds header-relative bottom-dropdown navigation; see NOTICE.md.
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Used to add the responsive menu options to the menu
+ * settings page (/admin/structure/menu/settings).
+ */
+function responsive_menu_form_menu_configure_alter(&$form, &$form_state) {
+  // Include the settings form and make sure its included when submitting.
+  form_load_include($form_state, 'inc', 'responsive_menu', 'includes/responsive_menu.admin');
+  // Append our form to the menu configure form.
+  $form += responsive_menu_settings_form($form);
+  // Add a custom submit handler to store the values.
+  $form['#submit'][] = 'responsive_menu_settings_form_submit';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Modifies the menu form to include flyleft options.
+ */
+function responsive_menu_form_menu_overview_form_alter(&$form, &$form_state) {
+  if ($form['#menu']['menu_name'] == variable_get('responsive_menu_menu', 'main-menu')) {
+    foreach ($form as $key => $value) {
+      if (strpos($key, 'mlid') !== FALSE) {
+        if (!empty($form[$key]['#item']['p2']) && empty($form[$key]['#item']['p3'])) {
+          $form[$key]['flyleft'] = array(
+            '#type' => 'checkbox',
+            '#title' => 'Fly left',
+            '#title_display' => 'invisible',
+            '#default_value' => variable_get('responsive_menu_flyleft_' . $key, FALSE),
+          );
+        }
+      }
+    }
+    // Alter the theme function to use our own.
+    $form['#theme'] = 'responsive_menu_overview_form';
+    // Add a submit handler to save the variables for the flyout.
+    $form['#submit'][] = 'responsive_menu_overview_form_submit';
+  }
+}
+
+/**
+ * Submit handler to store fly-out variables.
+ */
+function responsive_menu_overview_form_submit($form, &$form_state) {
+  foreach ($form_state['values'] as $key => $value) {
+    if (strpos($key, 'mlid') !== FALSE) {
+      if (!empty($value['flyleft'])) {
+        // Store a variable for this menu item.
+        variable_set('responsive_menu_flyleft_' . $key, TRUE);
+      }
+      else {
+        // Remove any possible old variables.
+        variable_del('responsive_menu_flyleft_' . $key);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function responsive_menu_block_info() {
+  $blocks = array();
+
+  $blocks['toggle'] = array(
+    'info' => t('Responsive menu mobile icon'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  $blocks['horizontal_menu'] = array(
+    'info' => t('Responsive menu'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function responsive_menu_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'toggle':
+      return array(
+        'subject' => '',
+        'content' => theme('responsive_menu_block_toggle'),
+      );
+
+    case 'horizontal_menu':
+      module_load_include('inc', 'responsive_menu', 'includes/responsive_menu.menu');
+      // Get the menu name of the menu to be rendered.
+      $menu_name = variable_get('responsive_menu_menu', 'main-menu');
+      // Allow the menu name to be altered.
+      drupal_alter('responsive_menu_horizontal_menu_name', $tree);
+      // Get the maximum depth the horizontal menu will display.
+      $depth = variable_get('responsive_menu_depth', 3);
+      // Get the raw menu tree data.
+      $tree = responsive_menu_tree_block_data($menu_name, $depth);
+      // Allow the tree to be altered.
+      drupal_alter('responsive_menu_horizontal_tree', $tree);
+      return responsive_menu_tree_build($tree, $menu_name);
+  }
+
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function responsive_menu_theme($existing, $type, $theme, $path) {
+  $return = array();
+  $return['responsive_menu_block_wrapper'] = array(
+    'template' => 'responsive-menu-block-wrapper',
+    'variables' => array('content' => array()),
+    'path' => $path . '/theme',
+  );
+
+  $return['responsive_menu_link'] = array(
+    'file' => 'theme/theme.inc',
+    'render element' => 'element',
+  );
+
+  $return['responsive_menu_tree'] = array(
+    'file' => 'theme/theme.inc',
+    'render element' => 'tree',
+  );
+
+  $return['responsive_menu_overview_form'] = array(
+    'file' => 'theme/theme.inc',
+    'render element' => 'form',
+  );
+
+  $return['responsive_menu_block_toggle'] = array(
+    'template' => 'responsive-menu-block-toggle',
+    'variables' => array(),
+    'path' => $path . '/theme',
+  );
+
+  return $return;
+}
+
+/**
+ * Preprocess variables for responsive-menu-block-wrapper.tpl.php.
+ *
+ * @see responsive-menu-block-wrapper.tpl.php
+ */
+function template_preprocess_responsive_menu_block_wrapper(&$variables) {
+  $variables['classes_array'][] = 'responsive-menu-block';
+  $variables['classes_array'][] = 'menu-name-' . variable_get('responsive_menu_menu', 'main-menu');
+  $variables['element_type'] = variable_get('responsive_menu_element', 'nav');
+  $variables['content']['#attached']['css'] = array(
+    array(
+      'data' => '@media screen and ' . variable_get('responsive_menu_media_query', '(min-width: 960px)') . '{ .responsive-menu-block-wrapper.responsive-menu-block { display: block; } #block-responsive-menu-toggle { display: none; } }',
+      'type' => 'inline',
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu_preprocess_block().
+ *
+ * Removes the contextual links from the toggle icon block.
+ */
+function responsive_menu_preprocess_block(&$variables) {
+  if ($variables['block']->module == 'responsive_menu' && $variables['block']->delta == 'toggle') {
+    unset($variables['title_suffix']['contextual_links']);
+    // Get rid of the contextual-links-region class.
+    if ($key = array_search('contextual-links-region', $variables['classes_array'])) {
+      unset($variables['classes_array'][$key]);
+    }
+  }
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function responsive_menu_libraries_info() {
+  $libraries['superfish'] = array(
+    'name' => 'Superfish',
+    'vendor url' => 'https://api.github.com/repos/joeldbirch/superfish/zipball',
+    'download url' => 'https://api.github.com/repos/joeldbirch/superfish/zipball',
+    'version arguments' => array(
+      // Use bower.json as that is the only consistent file when downloading
+      // using manual method, bower and npm.
+      'file' => 'bower.json',
+      // Version string is stored as json in the format: "version": "1.7.5".
+      'pattern' => '/"version"\: "(\d\..+?)"/',
+      'lines' => 15,
+    ),
+    'files' => array(
+      'js' => array(
+        'dist/js/hoverIntent.js',
+        'dist/js/superfish.min.js',
+      ),
+    ),
+    'variants' => array(
+      'no_hoverintent' => array(
+        'files' => array(
+          'js' => array(
+            'dist/js/superfish.min.js',
+          ),
+        ),
+      ),
+    ),
+  );
+  $libraries['mmenu'] = array(
+    'name' => 'mmenu',
+    'vendor url' => 'http://mmenu.frebsite.nl',
+    'download url' => 'https://api.github.com/repos/FrDH/mmenu-js/zipball',
+    'version arguments' => array(
+      'file' => 'package.json',
+      'pattern' => '/"version".+?"(\d\..+?)"/',
+      'lines' => 5,
+    ),
+    'files' => array(
+      'js' => array(
+        'dist/mmenu.js',
+      ),
+      'css' => array(
+        'dist/mmenu.css',
+      ),
+    ),
+    'variants' => array(
+      'with_polyfills' => array(
+        'files' => array(
+          'js' => array(
+            'dist/mmenu.js',
+            'dist/mmenu.polyfills.js',
+          ),
+          'css' => array(
+            'dist/mmenu.css',
+          ),
+        ),
+      ),
+    )
+  );
+  return $libraries;
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function responsive_menu_page_build(&$page) {
+  // Adminimal's custom theme offsets the admin menu to compensate for the old
+  // mmenu page wrapper. Bottom mode does not create that wrapper. Load this
+  // tiny compatibility stylesheet last on every route, including /admin/*.
+  drupal_add_css(
+    drupal_get_path('module', 'responsive_menu') . '/css/responsive_menu.admin.css',
+    array('group' => CSS_THEME, 'weight' => 999, 'every_page' => TRUE)
+  );
+
+  // Never alter Drupal administration pages. Besides being unnecessary there,
+  // doing so can interfere with the admin menu/toolbar's fixed positioning.
+  if (path_is_admin(current_path())) {
+    return;
+  }
+  if (!function_exists('libraries_load')) {
+    return;
+  }
+
+  $position = variable_get('responsive_menu_position', 'left');
+
+  // The bottom dropdown uses the module's lightweight navigation code. The
+  // left and right variants continue to use mmenu.
+  $library_status = array('loaded' => TRUE);
+  if ($position !== 'bottom') {
+    $library_status = variable_get('responsive_menu_use_polyfills', FALSE) ? libraries_load('mmenu', 'with_polyfills') : libraries_load('mmenu');
+  }
+  // Check whether the library was loaded before trying to render the HTML.
+  // This should avoid issues where the unstyled menu is shown at the
+  // bottom of the page if the library has not been installed.
+  if (!$library_status['loaded']) {
+    watchdog('responsive_menu', 'The mmenu library could not be loaded. Please check you have installed it correctly by following the instructions in the README.md within the module directory.', NULL, WATCHDOG_ERROR);
+    return;
+  }
+
+  module_load_include('inc', 'responsive_menu', 'includes/responsive_menu.menu');
+
+  $off_canvas_menus = variable_get('responsive_menu_off_canvas_menus', 'main-menu');
+
+  // Allow other modules to modify this configuration.
+  drupal_alter('responsive_menu_off_canvas_menu_names', $off_canvas_menus);
+
+  $menus = explode(',', $off_canvas_menus);
+
+  $menu_tree = array();
+  foreach ($menus as $menu_name) {
+    $tree = responsive_menu_tree_block_data(trim($menu_name));
+    $menu_tree = array_merge($menu_tree, $tree);
+  }
+
+  // Allow this merged menu tree to be altered.
+  drupal_alter('responsive_menu_off_canvas_tree', $menu_tree);
+
+  // Load the superfish library.
+  if (variable_get('responsive_menu_superfish', TRUE) && ($library = drupal_get_library('system', 'jquery')) && version_compare($library['version'], 1.7, '>=')) {
+    // Determine whether to load hoverintent or not.
+    // The default is to include it with superfish.
+    variable_get('responsive_menu_superfish_hoverintent', TRUE) ? libraries_load('superfish') : libraries_load('superfish', 'no_hoverintent');
+  }
+
+  // Add the variables from the settings page for the javascript to use.
+  $page['page_bottom']['#attached']['js'][] = array(
+    'data' => array(
+      'responsive_menu' => array(
+        'position' => $position,
+        'theme' => variable_get('responsive_menu_theme', 'theme-dark'),
+        'bottomAnchor' => variable_get('responsive_menu_bottom_anchor', '#tools, #inner-tools'),
+        'bottomColumns' => (int) variable_get('responsive_menu_bottom_columns', 4),
+        'drag' => (bool) variable_get('responsive_menu_drag', FALSE),
+        'breakpoint' => variable_get('responsive_menu_breakpoint', FALSE),
+        'superfish' => array(
+          'delay' => variable_get('responsive_menu_superfish_delay', 300),
+          'speed' => variable_get('responsive_menu_superfish_speed', 100),
+          'speedOut' => variable_get('responsive_menu_superfish_speed_out', 100),
+        ),
+      ),
+    ),
+    'type' => 'setting',
+  );
+
+  $page['page_bottom']['#attached']['js'][] = array(
+    'data' => drupal_get_path('module', 'responsive_menu') . '/js/responsive_menu.config.js',
+    'type' => 'file',
+    'scope' => 'footer',
+    'group' => JS_THEME,
+    'weight' => 20,
+  );
+
+  // Add the module's css file if the user does not want to disable it.
+  if (variable_get('responsive_menu_css', TRUE)) {
+    $page['page_bottom']['#attached']['css'][drupal_get_path('module', 'responsive_menu') . '/css/responsive_menu.css'] = array();
+  }
+
+  // Choose the first menu as the menu name.
+  $menu_name = reset($menus);
+  // Generate the output.
+  $output = responsive_menu_tree_output($menu_tree, $menu_name);
+
+  $output['#id'] = 'off-canvas-menu';
+  // Add the output to the page_bottom region.
+  $page['page_bottom']['off_canvas'] = array(
+    '#prefix' => '<div class="off-canvas-wrapper"><div id="off-canvas">',
+    '#suffix' => '</div></div>',
+    '#markup' => drupal_render($output),
+  );
+}

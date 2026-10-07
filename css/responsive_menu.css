@@ -1,0 +1,532 @@
+/* Responsive Menu 7.x-3.7, modified October 2026.
+ * Adds header-relative bottom-dropdown navigation; see NOTICE.md. */
+.responsive-menu-block-wrapper {
+  display: none;
+}
+
+.mm-page {
+  background-color: #ffffff;
+}
+
+.horizontal-menu {
+  position: relative;
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0;
+  margin-left: 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+}
+
+.horizontal-menu > li {
+  display: inline-block;
+  position: relative;
+}
+
+.horizontal-menu > li > a:hover,
+.horizontal-menu > li.active-trail > a {
+}
+
+
+.horizontal-menu > li ul ul {
+  left: 13.75em;
+  top: 0;
+}
+
+.horizontal-menu ul .fly-left ul {
+  left: -13.75em;
+}
+
+.horizontal-menu > li > a {
+  display: block;
+  padding-top: 0.3em;
+  padding-right: 1em;
+  padding-bottom: 0.35em;
+  padding-left: 1em;
+}
+
+.horizontal-menu > li ul {
+  position: absolute;
+  display: none;
+  top: 100%;
+  left: 0;
+  z-index: 99;
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  padding-left: 0;
+  box-sizing: border-box;
+  width: 13.75em;
+  list-style: none;
+}
+
+.horizontal-menu li.sfHover > ul,
+.horizontal-menu li:hover > ul {
+  display: block;
+}
+
+.horizontal-menu li li {
+  position: relative;
+  float: left;
+  width: 100%;
+}
+
+.horizontal-menu > li > li:hover > ul,
+.horizontal-menu > li > li.sfHover > ul {
+  display: block;
+}
+
+.horizontal-menu > li li > a {
+    display: block;
+    position: relative;
+    padding-top: 0.25em;
+    padding-right: 1em;
+    padding-bottom: 0.25em;
+    padding-left: 1em;
+    text-transform: none;
+}
+
+.off-canvas-wrapper {
+  display: block;
+}
+
+.no-js .off-canvas-wrapper {
+  display: none;
+}
+
+.responsive-menu-toggle-icon {
+  box-sizing: border-box;
+  display: block;
+  width: 44px;
+  height: 35px;
+  z-index: 4;
+  margin-top: 0;
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.no-js .responsive-menu-toggle-icon {
+  display: none;
+}
+
+.responsive-menu-toggle-icon span.label {
+  display: block;
+  position: absolute;
+  font-size: 17px;
+  text-transform: uppercase;
+  top: 2px;
+  left: 40px;
+  color: #fff;
+}
+
+.responsive-menu-toggle-icon:before,
+.responsive-menu-toggle-icon:after,
+.responsive-menu-toggle-icon span.icon {
+  background: #fff;
+  content: '';
+  display: block;
+  width: 20px;
+  height: 3px;
+  position: absolute;
+  top: 0;
+  left: 13px;
+  border-radius: 2px;
+}
+
+.responsive-menu-toggle-icon:before {
+  top: 8px;
+}
+
+.responsive-menu-toggle-icon span.icon {
+  top: 14px;
+}
+
+.responsive-menu-toggle-icon:after {
+  top: 20px;
+}
+
+.responsive-menu-toggle-icon:before,
+.responsive-menu-toggle-icon:after,
+.responsive-menu-toggle-icon span.icon {
+  transition: none 0.4s ease-out 0.1s;
+  transition-property: -webkit-transform, top, bottom, left, opacity;
+  transition-property: transform, top, bottom, left, opacity;
+}
+
+.mm-wrapper_opening .responsive-menu-toggle-icon:before,
+.mm-wrapper_opening .responsive-menu-toggle-icon:after,
+.rm-bottom-menu-open .responsive-menu-toggle-icon:before,
+.rm-bottom-menu-open .responsive-menu-toggle-icon:after {
+  top: 14px;
+}
+
+.mm-wrapper_opening .responsive-menu-toggle-icon span.icon,
+.rm-bottom-menu-open .responsive-menu-toggle-icon span.icon {
+  left: -25px;
+  opacity: 0;
+}
+
+.mm-wrapper_opening .responsive-menu-toggle-icon:before,
+.rm-bottom-menu-open .responsive-menu-toggle-icon:before {
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+.mm-wrapper_opening .responsive-menu-toggle-icon:after,
+.rm-bottom-menu-open .responsive-menu-toggle-icon:after {
+  -webkit-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}
+
+#mm-blocker {
+  background: rgba(0, 0, 0, 0);
+}
+
+.mm-opening #mm-blocker {
+  background: rgba(0, 0, 0, 0.2);
+  transition: background 1s ease 0.3s;
+}
+
+.mm-opening #page {
+  border-left: 1px solid #ccc;
+}
+
+/* ------------------------------------------------------------
+ * Smooth off-canvas menu fix for Firefox/Chrome/Edge.
+ * Keeps the menu on its own paint/compositing layer and prevents
+ * expensive submenu transition repainting.
+ * ------------------------------------------------------------ */
+
+.mm-menu,
+.mm-panel,
+.mm-page,
+.mm-wrapper,
+.mm-wrapper__blocker {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+}
+
+.mm-menu,
+.mm-panel {
+  will-change: transform;
+}
+
+.mm-panel,
+.mm-listview,
+.mm-listitem,
+.mm-listitem__text {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeSpeed;
+}
+
+/* Avoid slow fade repaint over the whole page. */
+.mm-opening #mm-blocker,
+.mm-wrapper_opening #mm-blocker {
+  transition: none !important;
+}
+
+/* Avoid page layout recalculation caused by changing borders while opening. */
+.mm-opening #page,
+.mm-wrapper_opening #page {
+  border-left: 0 !important;
+}
+
+/* The submenu/panel animation is the part that appears to stutter outside Safari. */
+.mm-panel,
+.mm-menu .mm-panel,
+.mm-menu .mm-listview {
+  transition-property: transform, opacity !important;
+}
+
+/* Stronger fix: stop nested panel animation completely. */
+.mm-menu .mm-panel_opened-parent,
+.mm-menu .mm-panel_opened,
+.mm-menu .mm-panel_highest {
+  transition-duration: 1ms !important;
+  animation: none !important;
+}
+
+/* CSS-only submenu animation for Mmenu */
+.mm-menu .mm-panel {
+  transition: transform 220ms ease, opacity 220ms ease !important;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Current/open panel */
+.mm-menu .mm-panel_opened {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) !important;
+}
+
+/* Parent/previous panel */
+.mm-menu .mm-panel_opened-parent {
+  opacity: 0;
+  transform: translate3d(-25%, 0, 0) !important;
+}
+
+/* Panels not currently visible */
+.mm-menu .mm-panel:not(.mm-panel_opened):not(.mm-panel_opened-parent) {
+  opacity: 0;
+  transform: translate3d(100%, 0, 0) !important;
+}
+
+/* Stop layout-based animation */
+.mm-menu .mm-panel,
+.mm-menu .mm-listview,
+.mm-menu .mm-listitem {
+  animation: none !important;
+}
+
+/* Keep text rendering stable during movement */
+.mm-menu,
+.mm-menu * {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Bottom dropdown mode --------------------------------------------------- */
+.off-canvas-wrapper.rm-bottom-menu {
+  display: block;
+  position: absolute;
+  z-index: 1000;
+  overflow: hidden;
+  visibility: hidden;
+  background: #fff;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  transform: translateY(-18px);
+  transition: opacity 220ms ease, transform 220ms ease, visibility 0s linear 220ms;
+}
+
+.off-canvas-wrapper.rm-bottom-menu.rm-menu-open {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0s;
+}
+
+.rm-bottom-menu #off-canvas {
+  position: relative;
+  overflow: hidden;
+  height: 0;
+  max-height: calc(100vh - 120px);
+  background: #fff;
+  transition: height 260ms ease;
+}
+
+.rm-bottom-menu ul.rm-panel {
+  box-sizing: border-box;
+  display: none;
+  grid-template-columns: repeat(var(--rm-active-columns, var(--rm-columns, 4)), minmax(0, 1fr));
+  grid-auto-rows: minmax(54px, auto);
+  column-gap: 24px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  max-height: calc(100vh - 120px);
+  margin: 0;
+  padding: 28px 34px 36px;
+  overflow-y: auto;
+  list-style: none;
+  pointer-events: none;
+}
+
+.rm-bottom-menu ul.rm-panel.rm-panel-active {
+  display: grid;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+  animation: rm-panel-slide-in 260ms ease both;
+}
+
+.rm-bottom-menu ul.rm-panel.rm-panel-measuring {
+  display: grid !important;
+  position: absolute !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  animation: none !important;
+}
+
+.rm-bottom-menu ul.rm-panel.rm-panel-parent {
+  display: none;
+}
+
+.rm-bottom-menu ul.rm-panel.rm-panel-returning {
+  animation: rm-panel-slide-back 260ms ease both !important;
+}
+
+@keyframes rm-panel-slide-in {
+  from {
+    opacity: 0.6;
+    transform: translate3d(8%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes rm-panel-slide-back {
+  from {
+    opacity: 0.6;
+    transform: translate3d(-8%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.rm-bottom-menu .rm-panel > li {
+  position: relative;
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  border-bottom: 1px solid #e5e8ef;
+  list-style: none;
+}
+
+.rm-bottom-menu .rm-panel > li > a,
+.rm-bottom-menu .rm-panel > li > .rm-submenu-label,
+.rm-bottom-menu .rm-menu-back > button {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 54px;
+  padding: 12px 22px;
+  border: 0;
+  background: transparent;
+  color: #102c82;
+  font: inherit;
+  line-height: 1.25;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.rm-bottom-menu .rm-panel > li.rm-has-submenu > a,
+.rm-bottom-menu .rm-panel > li.rm-has-submenu > .rm-submenu-label {
+  padding-right: 64px;
+}
+
+.rm-bottom-menu .rm-panel > li > .rm-submenu-label {
+  color: inherit;
+  cursor: pointer;
+}
+
+.rm-bottom-menu .rm-submenu-arrow {
+  box-sizing: border-box;
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  width: 54px;
+  min-height: 54px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #102c82;
+  cursor: pointer;
+}
+
+.rm-bottom-menu .rm-submenu-arrow::before {
+  content: '\203A';
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.rm-bottom-menu .rm-panel > li > a:hover,
+.rm-bottom-menu .rm-panel > li > a:focus,
+.rm-bottom-menu .rm-submenu-arrow:hover,
+.rm-bottom-menu .rm-menu-back > button:hover,
+.rm-bottom-menu .rm-menu-back > button:focus {
+  background-color: #f5f7fb;
+  outline: 2px solid transparent;
+}
+
+/* Returning from a submenu restores focus to its arrow for accessibility.
+ * Do not leave a mouse-style grey block behind; keyboard users still receive
+ * an explicit focus ring through :focus-visible. */
+.rm-bottom-menu .rm-submenu-arrow:focus {
+  background-color: transparent;
+  outline: 0;
+}
+
+.rm-bottom-menu .rm-submenu-arrow:focus-visible {
+  background-color: #f5f7fb;
+  outline: 2px solid #102c82;
+  outline-offset: -2px;
+}
+
+.rm-bottom-menu .rm-panel > li.active > a,
+.rm-bottom-menu .rm-panel > li.active-trail > a,
+.rm-bottom-menu .rm-panel > li.active-trail > .rm-submenu-label {
+  background-color: #f5f7fb;
+  font-weight: 700;
+}
+
+.rm-bottom-menu .rm-menu-back {
+  display: block;
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
+  border-bottom-color: #ccd3e3;
+}
+
+.rm-bottom-menu .rm-menu-back > button {
+  font-weight: 700;
+}
+
+.rm-bottom-menu .rm-menu-back span {
+  margin-right: 12px;
+  font-size: 1.25em;
+}
+
+.rm-bottom-menu-open #mm-blocker,
+.rm-bottom-menu-open .mm-wrapper__blocker {
+  display: none !important;
+}
+
+@media (max-width: 1000px) {
+  .rm-bottom-menu ul.rm-panel {
+    --rm-active-columns: 3;
+  }
+}
+
+@media (max-width: 760px) {
+  .rm-bottom-menu ul.rm-panel {
+    --rm-active-columns: 2;
+    padding: 20px 18px 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rm-bottom-menu ul.rm-panel {
+    --rm-active-columns: 1;
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .off-canvas-wrapper.rm-bottom-menu,
+  .rm-bottom-menu #off-canvas,
+  .rm-bottom-menu ul.rm-panel {
+    transition-duration: 1ms;
+  }
+}

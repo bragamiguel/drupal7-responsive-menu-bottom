@@ -1,0 +1,18 @@
+/**
+ * @file
+ * Compatibility with the site's Adminimal admin-menu positioning.
+ *
+ * adminimal-custom.css offsets #admin-menu by -45px on public routes and
+ * -25px on administration routes to compensate for mmenu's former transformed
+ * page wrapper. The bottom dropdown mode does not create that wrapper.
+ */
+
+html body.adminimal-menu.adminimal-frontend div#admin-menu,
+html body.adminimal-menu.adminimal-backend div#admin-menu,
+html body.admin-menu.adminimal-menu div#admin-menu {
+  top: 0 !important;
+  margin-top: 0 !important;
+  transform: none !important;
+  -webkit-transform: none !important;
+  visibility: visible !important;
+}

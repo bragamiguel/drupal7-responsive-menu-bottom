@@ -1,0 +1,6 @@
+name = Responsive menu (bottom dropdown fork)
+description = Provides left/right off-canvas menus, a responsive multi-column bottom dropdown, and an optional horizontal menu with flyouts.
+core = 7.x
+configure = admin/structure/menu/settings
+package = Other
+dependencies[] = libraries
